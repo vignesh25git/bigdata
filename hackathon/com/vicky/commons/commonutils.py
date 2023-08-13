@@ -23,3 +23,29 @@ def removeTrailer(rdd):
     rdd2 = rdd1.filter(lambda x:x[1]!=total_records)
     return rdd2
 
+def writeToFile(df,location,filetype="csv",delim=",",mode="overwrite",headerflag=True):
+    if filetype=='csv':
+     df.write.mode(mode).csv(location, header=headerflag, sep=delim)
+     print("csv saved")
+    elif filetype=='json':
+     df.write.mode(mode).option("multiline", "true").json(location)
+     print("json saved")
+    elif filetype=='parquet':
+     df.write.parquet(location,mode=mode)
+     print("parquet saved")
+
+
+def writeHiveTable(df, tblname, mode="overwrite"):
+    df.write.mode(mode).saveAsTable(tblname)
+    print("hive table saved")
+
+def writeToSqlTable(df,url,table,mode,driver):
+    print("Starting to save to MYSQL ")
+    df.write.jdbc(url=url,table=table,mode=mode,properties={"driver":driver})
+    print("completed - save to MYSQL ")
+
+
+
+
+
+

@@ -4,8 +4,13 @@ master=local[2]
 jdbclib=/usr/local/hive/lib/mysql-connector-java.jar
 
 [FILEPATH]
-custstates=/home/hduser/hack/custs_states.csv
 insinfo1=file:///home/hduser/hack/insuranceinfo1.csv
 manuf=/home/hduser/hack/manuf_data.csv
 insinfo2=file:///home/hduser/hack/insuranceinfo2.csv
 apidata=/home/hduser/hack/apidata.json
+outpath=hdfs:///user/hduser/sparkhack2/output1
+custstate=hdfs:///user/hduser/sparkhack2/input/custs_states.csv
+
+[JDBC]
+url=jdbc:mysql://127.0.0.1:3306/custdb1?user=root&password=Root123$
+driver=com.mysql.jdbc.Driver

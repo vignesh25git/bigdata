@@ -9,11 +9,14 @@ def readPropertyFile(propfile):
     global jdbclib
     global insinfo1
     global insinfo2
+    global output_path
     appname = config.get("CONFIGS",'name')
     process = config.get("CONFIGS",'master')
     jdbclib = config.get("CONFIGS",'jdbclib')
     insinfo1= config.get("FILEPATH",'insinfo1')
     insinfo2= config.get("FILEPATH",'insinfo2')
+    output_path= config.get("FILEPATH",'outpath')
+
 
 def main():
     print("Spark Hackathon Starts")
@@ -79,10 +82,46 @@ def main():
     print(rejectdata.collect())
 
 #11 - filter null or blank in issuerid, issuerid2
-
     insured2datafilteredrdd = insured2datardd4.filter(lambda x:x[0]!="" or x[1]!="")
     print(insured2datafilteredrdd.count())
+#Data merging , Deduplicationn, Performance tuning, Persistance
 
+#12 - merge both the file RDD ins1 and ins2
+    insureddatamerged = insureddatardd4.union(insured2datafilteredrdd)
+#13 - persist to memory
+    from pyspark import StorageLevel
+    #insureddatamerged.cache()
+    insureddatamerged.persist(StorageLevel.MEMORY_ONLY)
+#14 - rdd count validation
+    count_ins1 = insureddatardd4.count()
+    count_ins2 = insured2datafilteredrdd.count()
+    count_merged = insureddatamerged.count()
+    if count_merged == (count_ins1+count_ins2):
+        print(f'Merged count is matching - {count_merged} = {count_ins1} and {count_ins2} ')
+
+#15 - increase the partition 8
+    insureddatarepart = insureddatamerged.repartition(8)
+    print(f' revised partition - {insureddatarepart.getNumPartitions()}')
+    print(f'count - {insureddatarepart.count()}')
+
+#16 - split based on business date
+    rdd_20191001 = insureddatarepart.filter(lambda x:x[2]=='2019-10-01' or x[2]=='01-10-2019')
+    rdd_20191002 = insureddatarepart.filter(lambda x:x[2]=='02-10-2019')
+
+    print(f'10/01 - {rdd_20191001.count()} 10/02 - {rdd_20191002.count()} ')
+
+#TT - date wise count
+    datewisecount = insureddatarepart.map(lambda x:(x[2],1)).reduceByKey(lambda x,y:x+y)
+    print(datewisecount.collect())
+#17 - save in hdfs path
+    insureddatarepart.saveAsTextFile(output_path)
+    #rdd_20191001.saveAsTextFile(output_path+"/20191001")
+    #rdd_20191002.saveAsTextFile(output_path+"/20191002")
+#18 - convert to df
+    cols=["IssuerId","IssuerId2","BusinessDate","StateCode","SourceName","NetworkName","NetworkURL","custnum","MarketCoverage","DentalOnlyPlan"]
+    #insureddatarepartdf=insureddatarepart.map(lambda x:(x[0],x[1],x[2])).toDF(cols)
+    insureddatarepartdf = insureddatarepart.toDF(cols)
+    insureddatarepartdf.show()
 
 
 
