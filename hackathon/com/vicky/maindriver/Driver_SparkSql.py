@@ -26,7 +26,7 @@ def readPropertyFile(propfile):
     driver=config.get("JDBC",'driver')
 
 def main():
-    print("Spark Hackathon Starts")
+    print("Spark Hackathon Starts - Spark core ")
     propfile = "/home/hduser/PycharmProjects/hackathon/conn.prop"
     readPropertyFile(propfile)
     spark = getSparkSession(process,appname,jdbclib,"Y")
