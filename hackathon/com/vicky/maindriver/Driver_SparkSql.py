@@ -234,11 +234,17 @@ def main():
 
 
 #38 -
-    finaldf = spark.sql("select seqno,statedesc,protocol,profession,Avgage,count"
-              "from (select ROW_NUMBER() over(partition by protocol order by count desc) as seqno, statedesc, protocol, profession,avg(age) as Avgage , count(*) as count "
-              "from insurancedata "
-              "group by statedesc, protocol, profession) insure "
-              "where protocol='http Secured and statedesc='Alaska' and seq=2")
+    finaldf = spark.sql(""" select seqno,statedesc,protocol,profession,Avgage,count from 
+                           (select ROW_NUMBER() over(partition by protocol,statedesc order by count(*) desc) as seqno, 
+                            statedesc, protocol, profession,avg(age) as Avgage , count(*) as count 
+                            from insurancedata group by statedesc, protocol, profession having profession is not null) ins 
+                            where protocol='http Secured' and statedesc='Alaska' and seqno=2 """)
+
+#        "select seqno,statedesc,protocol,profession,Avgage,count "
+#              "from (select ROW_NUMBER() over(partition by protocol,statedesc order by count(*) desc) as seqno, statedesc, protocol, profession,avg(age) as Avgage , count(*) as count "
+#              "from insurancedata "
+#              "group by statedesc, protocol, profession having profession is not null) insure "
+ #             "where protocol='http Secured' and statedesc='Alaska' and seqno=2")
 
     finaldf.show()
 
